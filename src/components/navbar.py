@@ -2,15 +2,26 @@ import dash
 from dash import html, dcc, Input, Output, callback
 
 
-def create_navbar():
-    """Create and return the navbar component"""
+def navbar(brand_name="EasySAM", brand_href="/", className="", **kwargs):
+    """
+    ShadCN UI-inspired navbar component
+
+    Args:
+        brand_name: Brand/logo text
+        brand_href: Brand link URL
+        className: Additional CSS classes
+    """
     return html.Div([
         # Navigation Bar
         html.Nav([
             html.Div([
                 # Logo/Brand
                 html.Div([
-                    html.H1("EasySAM", className="text-2xl font-bold text-white")
+                    dcc.Link(
+                        brand_name,
+                        href=brand_href,
+                        className="text-2xl font-bold text-white hover:text-blue-100 transition-colors duration-200"
+                    )
                 ], className="flex items-center"),
 
                 # Navigation Links
@@ -19,17 +30,17 @@ def create_navbar():
                         dcc.Link(
                             page['name'],
                             href=page["relative_path"],
-                            className="text-white hover:text-blue-200 transition-colors duration-200 px-3 py-2 rounded-md text-sm font-medium"
+                            className="text-white/90 hover:text-white transition-colors duration-200 px-3 py-2 rounded-md text-sm font-medium hover:bg-white/10"
                         ) for page in dash.page_registry.values()
-                    ], className="flex space-x-4")
+                    ], className="flex space-x-1")
                 ], className="hidden md:block"),
 
                 # Mobile menu button
                 html.Button([
                     html.Span("☰", className="text-xl")
-                ], className="md:hidden text-white hover:text-blue-200 focus:outline-none p-2", id="mobile-menu-button")
+                ], className="md:hidden text-white hover:text-blue-100 focus:outline-none focus:ring-2 focus:ring-white/20 p-2 rounded-md transition-colors", id="mobile-menu-button")
             ], className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex justify-between items-center h-16")
-        ], className="bg-gradient-to-r from-blue-600 to-blue-800 shadow-lg"),
+        ], className=f"bg-gradient-to-r from-blue-600 to-blue-800 shadow-lg border-b border-blue-500/20 {className}".strip()),
 
         # Mobile Navigation Menu (hidden by default)
         html.Div([
@@ -37,11 +48,16 @@ def create_navbar():
                 dcc.Link(
                     page['name'],
                     href=page["relative_path"],
-                    className="text-white hover:text-blue-200 block px-3 py-2 rounded-md text-base font-medium"
+                    className="text-white/90 hover:text-white hover:bg-white/10 block px-3 py-2 rounded-md text-base font-medium transition-colors duration-200"
                 ) for page in dash.page_registry.values()
             ], className="px-2 pt-2 pb-3 space-y-1")
-        ], className="md:hidden bg-blue-700", id="mobile-menu", style={"display": "none"})
-    ], style={"fontFamily": "Inter, sans-serif"})
+        ], className="md:hidden bg-blue-700/95 backdrop-blur-sm border-b border-blue-500/20", id="mobile-menu", style={"display": "none"})
+    ], **kwargs)
+
+
+def create_navbar():
+    """Legacy function for backward compatibility"""
+    return navbar()
 
 
 # Callback for mobile menu toggle
