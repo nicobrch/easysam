@@ -20,7 +20,7 @@ def navbar(brand_name="EasySAM", brand_href="/", className="", **kwargs):
                     dcc.Link(
                         brand_name,
                         href=brand_href,
-                        className="text-2xl font-bold text-white hover:text-blue-100 transition-colors duration-200"
+                        className="text-lg font-bold text-white hover:text-blue-100 transition-colors duration-200"
                     )
                 ], className="flex items-center"),
 
@@ -30,7 +30,7 @@ def navbar(brand_name="EasySAM", brand_href="/", className="", **kwargs):
                         dcc.Link(
                             page['name'],
                             href=page["relative_path"],
-                            className="text-white/90 hover:text-white transition-colors duration-200 px-3 py-2 rounded-md text-sm font-medium hover:bg-white/10"
+                            className="text-white/90 hover:text-white transition-colors duration-200 px-2 py-1 rounded text-xs font-medium hover:bg-white/10"
                         ) for page in dash.page_registry.values()
                     ], className="flex space-x-1")
                 ], className="hidden md:flex flex-1 justify-center"),
@@ -38,10 +38,10 @@ def navbar(brand_name="EasySAM", brand_href="/", className="", **kwargs):
                 # Mobile menu button (right side)
                 html.Div([
                     html.Button([
-                        html.Span("☰", className="text-xl")
-                    ], className="md:hidden text-white hover:text-blue-100 focus:outline-none focus:ring-2 focus:ring-white/20 p-2 rounded-md transition-colors", id="mobile-menu-button")
+                        html.Span("☰", className="text-base")
+                    ], className="md:hidden text-white hover:text-blue-100 focus:outline-none focus:ring-1 focus:ring-white/20 p-1 rounded transition-colors", id="mobile-menu-button")
                 ], className="flex items-center")
-            ], className="max-w-full mx-auto px-4 sm:px-6 lg:px-8 flex items-center h-16")
+            ], className="max-w-full mx-auto px-3 sm:px-4 lg:px-6 flex items-center h-12")
         ], className=f"bg-gradient-to-r from-blue-600 to-blue-800 shadow-lg border-b border-blue-500/20 {className}".strip()),
 
         # Mobile Navigation Menu (hidden by default)
@@ -50,9 +50,9 @@ def navbar(brand_name="EasySAM", brand_href="/", className="", **kwargs):
                 dcc.Link(
                     page['name'],
                     href=page["relative_path"],
-                    className="text-white/90 hover:text-white hover:bg-white/10 block px-3 py-2 rounded-md text-base font-medium transition-colors duration-200"
+                    className="text-white/90 hover:text-white hover:bg-white/10 block px-2 py-1 rounded text-xs font-medium transition-colors duration-200"
                 ) for page in dash.page_registry.values()
-            ], className="px-2 pt-2 pb-3 space-y-1")
+            ], className="px-2 pt-1 pb-2 space-y-0.5")
         ], className="md:hidden bg-blue-700/95 backdrop-blur-sm border-b border-blue-500/20", id="mobile-menu", style={"display": "none"})
     ], **kwargs)
 

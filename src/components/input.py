@@ -21,7 +21,7 @@ def input_field(id=None, type="text", placeholder="", value="", disabled=False,
     """
 
     # Base input classes
-    base_classes = "flex h-10 w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm ring-offset-white file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-gray-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+    base_classes = "flex h-8 w-full rounded border border-gray-300 bg-white px-2 py-1 text-xs ring-offset-white file:border-0 file:bg-transparent file:text-xs file:font-medium placeholder:text-gray-500 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-blue-500 focus-visible:ring-offset-1 disabled:cursor-not-allowed disabled:opacity-50"
 
     # Error state classes
     if error_message:
@@ -60,7 +60,7 @@ def input_field(id=None, type="text", placeholder="", value="", disabled=False,
 
     # Label
     if label:
-        label_classes = "text-sm font-medium text-gray-700 mb-2 block"
+        label_classes = "text-xs font-medium text-gray-700 mb-1 block"
         if required:
             label_content = [label, html.Span(" *", className="text-red-500")]
         else:
@@ -82,7 +82,7 @@ def input_field(id=None, type="text", placeholder="", value="", disabled=False,
         components.append(
             html.P(
                 helper_text,
-                className="text-xs text-gray-600 mt-1"
+                className="text-xs text-gray-600 mt-0.5"
             )
         )
 
@@ -90,7 +90,7 @@ def input_field(id=None, type="text", placeholder="", value="", disabled=False,
         components.append(
             html.P(
                 error_message,
-                className="text-xs text-red-600 mt-1"
+                className="text-xs text-red-600 mt-0.5"
             )
         )
 

@@ -16,7 +16,7 @@ def page_layout(children, title=None, className="", **kwargs):
     # Add title if provided
     if title:
         content.append(
-            html.H1(title, className="text-4xl font-bold text-gray-900 mb-8")
+            html.H1(title, className="text-2xl font-bold text-gray-900 mb-4")
         )
 
     # Add children content
@@ -28,9 +28,9 @@ def page_layout(children, title=None, className="", **kwargs):
     return html.Div([
         html.Div(
             content,
-            className=f"max-w-9/10 mx-auto px-2 py-8 {className}".strip()
+            className=f"max-w-7xl mx-auto px-3 py-4 {className}".strip()
         )
-    ], className="min-h-screen bg-gray-50 pt-2", style={"fontFamily": "Inter, sans-serif"}, **kwargs)
+    ], className="min-h-screen bg-gray-50 pt-4", style={"fontFamily": "Inter, sans-serif"}, **kwargs)
 
 
 def section(children, title=None, className="", **kwargs):
@@ -48,7 +48,7 @@ def section(children, title=None, className="", **kwargs):
     # Add section title if provided
     if title:
         content.append(
-            html.H2(title, className="text-2xl font-semibold text-gray-800 mb-4")
+            html.H2(title, className="text-lg font-semibold text-gray-800 mb-3")
         )
 
     # Add children content
@@ -59,7 +59,7 @@ def section(children, title=None, className="", **kwargs):
 
     return html.Section(
         content,
-        className=f"mb-8 {className}".strip(),
+        className=f"mb-6 {className}".strip(),
         **kwargs
     )
 

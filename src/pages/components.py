@@ -5,8 +5,8 @@ from components import (
     primary_button, secondary_button, destructive_button, outline_button,
     text_input, number_input, email_input, password_input, textarea,
     dropdown, select, multi_select, create_options,
-    page_layout, section, content_grid, flex_container
 )
+from layout import (page_layout, section, content_grid, flex_container)
 
 dash.register_page(__name__, path='/components', name='Components')
 

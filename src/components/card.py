@@ -17,7 +17,7 @@ def card(children=None, className="", **kwargs):
 
 def card_header(children=None, className="", **kwargs):
     """Card header component"""
-    base_classes = "px-6 py-4 border-b border-gray-200"
+    base_classes = "px-4 py-3 border-b border-gray-200"
     combined_classes = f"{base_classes} {className}".strip()
 
     return html.Div(
@@ -29,7 +29,7 @@ def card_header(children=None, className="", **kwargs):
 
 def card_content(children=None, className="", **kwargs):
     """Card content component"""
-    base_classes = "px-6 py-4"
+    base_classes = "px-4 py-3"
     combined_classes = f"{base_classes} {className}".strip()
 
     return html.Div(
@@ -41,7 +41,7 @@ def card_content(children=None, className="", **kwargs):
 
 def card_footer(children=None, className="", **kwargs):
     """Card footer component"""
-    base_classes = "px-6 py-4 border-t border-gray-200 bg-gray-50/50"
+    base_classes = "px-4 py-3 border-t border-gray-200 bg-gray-50/50"
     combined_classes = f"{base_classes} {className}".strip()
 
     return html.Div(
@@ -53,7 +53,7 @@ def card_footer(children=None, className="", **kwargs):
 
 def card_title(text, className="", **kwargs):
     """Card title component"""
-    base_classes = "text-lg font-semibold text-gray-900"
+    base_classes = "text-base font-semibold text-gray-900"
     combined_classes = f"{base_classes} {className}".strip()
 
     return html.H3(
@@ -65,7 +65,7 @@ def card_title(text, className="", **kwargs):
 
 def card_description(text, className="", **kwargs):
     """Card description component"""
-    base_classes = "text-sm text-gray-600 mt-1"
+    base_classes = "text-xs text-gray-600 mt-1"
     combined_classes = f"{base_classes} {className}".strip()
 
     return html.P(
