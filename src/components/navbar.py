@@ -24,7 +24,7 @@ def navbar(brand_name="EasySAM", brand_href="/", className="", **kwargs):
                     )
                 ], className="flex items-center"),
 
-                # Navigation Links
+                # Navigation Links (centered)
                 html.Div([
                     html.Div([
                         dcc.Link(
@@ -33,13 +33,15 @@ def navbar(brand_name="EasySAM", brand_href="/", className="", **kwargs):
                             className="text-white/90 hover:text-white transition-colors duration-200 px-3 py-2 rounded-md text-sm font-medium hover:bg-white/10"
                         ) for page in dash.page_registry.values()
                     ], className="flex space-x-1")
-                ], className="hidden md:block"),
+                ], className="hidden md:flex flex-1 justify-center"),
 
-                # Mobile menu button
-                html.Button([
-                    html.Span("☰", className="text-xl")
-                ], className="md:hidden text-white hover:text-blue-100 focus:outline-none focus:ring-2 focus:ring-white/20 p-2 rounded-md transition-colors", id="mobile-menu-button")
-            ], className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex justify-between items-center h-16")
+                # Mobile menu button (right side)
+                html.Div([
+                    html.Button([
+                        html.Span("☰", className="text-xl")
+                    ], className="md:hidden text-white hover:text-blue-100 focus:outline-none focus:ring-2 focus:ring-white/20 p-2 rounded-md transition-colors", id="mobile-menu-button")
+                ], className="flex items-center")
+            ], className="max-w-full mx-auto px-4 sm:px-6 lg:px-8 flex items-center h-16")
         ], className=f"bg-gradient-to-r from-blue-600 to-blue-800 shadow-lg border-b border-blue-500/20 {className}".strip()),
 
         # Mobile Navigation Menu (hidden by default)

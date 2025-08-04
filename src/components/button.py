@@ -17,7 +17,7 @@ def button(children, variant="primary", size="default", disabled=False,
     """
 
     # Base button classes
-    base_classes = "inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50"
+    base_classes = "inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 cursor-pointer"
 
     # Variant classes
     variant_classes = {
@@ -41,7 +41,8 @@ def button(children, variant="primary", size="default", disabled=False,
     disabled_classes = "opacity-50 cursor-not-allowed" if disabled else ""
 
     # Combine all classes
-    combined_classes = f"{base_classes} {variant_classes.get(variant, variant_classes['primary'])} {size_classes.get(size, size_classes['default'])} {disabled_classes} {className}".strip()
+    combined_classes = f"{base_classes} {variant_classes.get(variant, variant_classes['primary'])} {size_classes.get(size, size_classes['default'])} {disabled_classes} {className}".strip(
+    )
 
     # Prepare props, only include id if it's provided
     button_props = {
@@ -50,7 +51,7 @@ def button(children, variant="primary", size="default", disabled=False,
         'n_clicks': n_clicks,
         **kwargs
     }
-    
+
     if id is not None:
         button_props['id'] = id
 

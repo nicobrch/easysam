@@ -53,6 +53,14 @@ from .navbar import (
     create_navbar
 )
 
+# Layout components
+from .layout import (
+    page_layout,
+    section,
+    content_grid,
+    flex_container
+)
+
 __all__ = [
     # Card
     'card', 'card_header', 'card_content', 'card_footer', 'card_title', 'card_description',
@@ -70,5 +78,8 @@ __all__ = [
     'dropdown', 'select', 'multi_select', 'searchable_dropdown', 'create_options',
 
     # Navigation
-    'navbar', 'create_navbar'
+    'navbar', 'create_navbar',
+
+    # Layout
+    'page_layout', 'section', 'content_grid', 'flex_container'
 ]
