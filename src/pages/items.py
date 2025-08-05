@@ -8,7 +8,7 @@ from components import (
 )
 from layout import (page_layout, section, content_grid, flex_container)
 
-dash.register_page(__name__, path='/components', name='Components')
+dash.register_page(__name__, path='/items', name='Items')
 
 # Sample data for dropdowns
 fruit_options = create_options(
