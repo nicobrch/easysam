@@ -22,7 +22,7 @@ def layout(image_id=None, **kwargs):
         html.Div([
             html.Img(
                 src="https://picsum.photos/1280/720?random=1",
-                className="w-full h-auto rounded-lg shadow-md",
+                className="w-full h-auto rounded-lg shadow-md hover:cursor-crosshair",
                 style={"maxHeight": "720px", "objectFit": "contain"}
             )
         ], className="mt-4")
@@ -49,17 +49,6 @@ def layout(image_id=None, **kwargs):
                     id="label-name-input",
                     placeholder="Enter label name...",
                     className="mb-3"
-                ),
-                html.Label(
-                    "Confidence:", className="block text-sm font-medium text-gray-700 mb-1"),
-                dcc.Slider(
-                    id="confidence-slider",
-                    min=0,
-                    max=100,
-                    step=1,
-                    value=85,
-                    marks={0: "0%", 50: "50%", 100: "100%"},
-                    className="mb-4"
                 )
             ])
         ], title="Label Properties"),

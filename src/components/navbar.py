@@ -42,7 +42,7 @@ def navbar(brand_name="EasySAM", brand_href="/", className="", **kwargs):
                     ], className="md:hidden text-white hover:text-blue-100 focus:outline-none focus:ring-1 focus:ring-white/20 p-1 rounded transition-colors", id="mobile-menu-button")
                 ], className="flex items-center")
             ], className="max-w-full mx-auto px-3 sm:px-4 lg:px-6 flex items-center h-12")
-        ], className=f"bg-gradient-to-r from-blue-600 to-blue-800 shadow-lg border-b border-blue-500/20 {className}".strip()),
+        ], className=f"fixed top-0 left-0 right-0 z-50 bg-gradient-to-r from-blue-600 to-blue-800 shadow-lg border-b border-blue-500/20 {className}".strip()),
 
         # Mobile Navigation Menu (hidden by default)
         html.Div([
@@ -53,7 +53,7 @@ def navbar(brand_name="EasySAM", brand_href="/", className="", **kwargs):
                     className="text-white/90 hover:text-white hover:bg-white/10 block px-2 py-1 rounded text-xs font-medium transition-colors duration-200"
                 ) for page in dash.page_registry.values()
             ], className="px-2 pt-1 pb-2 space-y-0.5")
-        ], className="md:hidden bg-blue-700/95 backdrop-blur-sm border-b border-blue-500/20", id="mobile-menu", style={"display": "none"})
+        ], className="fixed top-12 left-0 right-0 z-40 md:hidden bg-blue-700/95 backdrop-blur-sm border-b border-blue-500/20", id="mobile-menu", style={"display": "none"})
     ], **kwargs)
 
 

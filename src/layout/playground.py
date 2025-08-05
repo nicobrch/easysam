@@ -23,8 +23,8 @@ def playground_layout(left_content, right_content, className="", **kwargs):
                 right_content,
                 className="bg-white rounded-lg p-6 shadow-sm lg:col-span-1 h-full min-h-[600px]"
             )
-        ], className="grid grid-cols-1 lg:grid-cols-4 gap-6 max-w-8/10 mx-auto px-3 py-4 min-h-[calc(100vh-2rem)]")
-    ], className=f"min-h-screen bg-gray-50 pt-4 {className}".strip(),
+        ], className="grid grid-cols-1 lg:grid-cols-4 gap-6 max-w-8/10 mx-auto px-3 py-4 min-h-[calc(100vh-4rem)]")
+    ], className=f"min-h-screen bg-gray-50 pt-16 {className}".strip(),
         style={"fontFamily": "Inter, sans-serif"}, **kwargs)
 
 

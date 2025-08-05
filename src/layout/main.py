@@ -30,7 +30,7 @@ def page_layout(children, title=None, className="", **kwargs):
             content,
             className=f"max-w-7xl mx-auto px-3 py-4 {className}".strip()
         )
-    ], className="min-h-screen bg-gray-50 pt-4", style={"fontFamily": "Inter, sans-serif"}, **kwargs)
+    ], className="min-h-screen bg-gray-50 pt-16", style={"fontFamily": "Inter, sans-serif"}, **kwargs)
 
 
 def section(children, title=None, className="", **kwargs):
