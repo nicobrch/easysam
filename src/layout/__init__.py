@@ -1,5 +1,5 @@
 # Layout components
-from .main import (
+from .base import (
     page_layout,
     section,
     content_grid,
