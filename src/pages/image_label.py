@@ -1,5 +1,6 @@
 import dash
-from dash import html, dcc
+from dash import html, dcc, Input, Output, callback, no_update
+import time
 from layout import playground_layout, main_content_section, sidebar_section
 from components import button, input_field
 
@@ -18,13 +19,30 @@ def layout(image_id=None, **kwargs):
 
     # Left column content (main content)
     left_content = main_content_section([
-        # Image display with rounded corners
+        # Image display with rounded corners wrapped in loading component
         html.Div([
-            html.Img(
-                src="https://picsum.photos/1280/720?random=1",
-                className="w-full h-auto rounded-lg shadow-md hover:cursor-crosshair",
-                style={"maxHeight": "720px", "objectFit": "contain"}
-            )
+            # Image with loading effect
+            dcc.Loading([
+                html.Img(
+                    id="main-image",
+                    src=dash.get_asset_url('uhK9rL.jpg'),
+                    className="w-full h-auto rounded-lg shadow-md hover:cursor-crosshair",
+                    style={"maxHeight": "720px", "objectFit": "contain"}
+                )],
+                overlay_style={"visibility": "visible", "filter": "blur(2px)"},
+                type="cube",
+            ),
+            # Button to trigger loading
+            html.Div([
+                button(
+                    "Process Image",
+                    id="process-image-btn",
+                    variant="primary",
+                    size="sm",
+                    className="mt-3",
+                    n_clicks=0
+                )
+            ], className="flex justify-center")
         ], className="mt-4")
     ], title=f"Image {image_id or 'Not Found'}")
 
@@ -77,3 +95,15 @@ def layout(image_id=None, **kwargs):
         left_content=left_content,
         right_content=right_content
     )
+
+
+@callback(
+    Output("main-image", "src"),
+    Input("process-image-btn", "n_clicks"),
+)
+def process_image(n_clicks):
+    if n_clicks and n_clicks > 0:
+        time.sleep(2)  # Simulate processing time
+        # Return the same image source (in a real app, this would be the processed image)
+        return dash.get_asset_url('uhK9rL.jpg')
+    return no_update
