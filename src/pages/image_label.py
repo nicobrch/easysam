@@ -1,5 +1,5 @@
 import dash
-from dash import html, dcc, Input, Output, callback, no_update
+from dash import html, dcc, Input, Output, callback, no_update, clientside_callback
 import time
 from layout import playground_layout, main_content_section, sidebar_section
 from components import button, input_field
@@ -32,6 +32,10 @@ def layout(image_id=None, **kwargs):
                 overlay_style={"visibility": "visible", "filter": "blur(2px)"},
                 type="cube",
             ),
+            # Hidden div to store click data and trigger callback
+            html.Div(id="image-click-data", style={"display": "none"}),
+            html.Div(id="image-setup-trigger",
+                     style={"display": "none"}, children="loaded"),
             # Button to trigger loading
             html.Div([
                 button(
@@ -107,3 +111,81 @@ def process_image(n_clicks):
         # Return the same image source (in a real app, this would be the processed image)
         return dash.get_asset_url('uhK9rL.jpg')
     return no_update
+
+
+# Clientside callback to handle image clicks and log coordinates
+clientside_callback(
+    """
+    function(src, trigger) {
+        return new Promise((resolve) => {
+            const img = document.getElementById('main-image');
+            if (!img) {
+                resolve('');
+                return;
+            }
+            
+            // Function to set up click handler
+            const setupClickHandler = () => {
+                // Remove existing event listener to avoid duplicates
+                if (window.imageClickHandler) {
+                    img.removeEventListener('click', window.imageClickHandler);
+                }
+                
+                // Define the click handler
+                window.imageClickHandler = function(event) {
+                    const rect = img.getBoundingClientRect();
+                    const clickX = event.clientX - rect.left;
+                    const clickY = event.clientY - rect.top;
+                    
+                    // Get the actual image dimensions
+                    const naturalWidth = img.naturalWidth;
+                    const naturalHeight = img.naturalHeight;
+                    
+                    // Get the displayed image dimensions
+                    const displayWidth = img.offsetWidth;
+                    const displayHeight = img.offsetHeight;
+                    
+                    // Calculate the scale factors
+                    const scaleX = naturalWidth / displayWidth;
+                    const scaleY = naturalHeight / displayHeight;
+                    
+                    // Calculate relative coordinates (0-1 range)
+                    const relativeX = clickX / displayWidth;
+                    const relativeY = clickY / displayHeight;
+                    
+                    // Calculate absolute coordinates in original image resolution
+                    const absoluteX = Math.round(clickX * scaleX);
+                    const absoluteY = Math.round(clickY * scaleY);
+                    
+                    // Log to console
+                    console.log('Image Click Coordinates:', {
+                        'Display Position': { x: Math.round(clickX), y: Math.round(clickY) },
+                        'Relative Position (0-1)': { x: parseFloat(relativeX.toFixed(4)), y: parseFloat(relativeY.toFixed(4)) },
+                        'Absolute Position': { x: absoluteX, y: absoluteY },
+                        'Image Dimensions': { 
+                            natural: { width: naturalWidth, height: naturalHeight },
+                            display: { width: displayWidth, height: displayHeight }
+                        }
+                    });
+                };
+                
+                // Add the event listener
+                img.addEventListener('click', window.imageClickHandler);
+                console.log('Click handler set up for image');
+                resolve('click-handler-ready');
+            };
+            
+            // Check if image is already loaded
+            if (img.complete && img.naturalHeight !== 0) {
+                setupClickHandler();
+            } else {
+                // Wait for image to load
+                img.onload = setupClickHandler;
+            }
+        });
+    }
+    """,
+    Output("image-click-data", "children"),
+    Input("main-image", "src"),
+    Input("image-setup-trigger", "children")
+)
