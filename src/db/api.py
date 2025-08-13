@@ -93,7 +93,7 @@ class DatabaseAPI:
 
     # Videos CRUD operations
     @staticmethod
-    def create_video(project_id: int, name: str, file_path: str, first_frame_path: str,
+    def create_video(project_id: int, name: str, file_path: str, frame_directory: str,
                      width: int, height: int, fps: float, duration: float) -> Optional[Videos]:
         """Create a new video"""
         with get_db_session():
@@ -102,7 +102,7 @@ class DatabaseAPI:
                     project=project_id,
                     name=name,
                     file_path=file_path,
-                    first_frame_path=first_frame_path,
+                    frame_directory=frame_directory,
                     width=width,
                     height=height,
                     fps=fps,
@@ -292,7 +292,7 @@ class DatabaseAPI:
 
     # ObjectPoint CRUD operations
     @staticmethod
-    def create_object_point(object_id: int, video_id: int, point_label_id: int, x: int, y: int) -> Optional[ObjectPoint]:
+    def create_object_point(object_id: int, video_id: int, point_label_id: int, x: int, y: int, frame_idx: int) -> Optional[ObjectPoint]:
         """Create a new object point"""
         with get_db_session():
             try:
@@ -301,7 +301,8 @@ class DatabaseAPI:
                     video=video_id,
                     point_label=point_label_id,
                     x=x,
-                    y=y
+                    y=y,
+                    frame_idx=frame_idx
                 )
             except IntegrityError:
                 return None
@@ -326,6 +327,12 @@ class DatabaseAPI:
         """Get all object points for a video"""
         with get_db_session():
             return list(ObjectPoint.select().where(ObjectPoint.video == video_id))
+
+    @staticmethod
+    def get_object_points_by_frame_idx(video_id: int, frame_idx: int) -> List[ObjectPoint]:
+        """Get all object points for a video at a specific frame index"""
+        with get_db_session():
+            return list(ObjectPoint.select().where(ObjectPoint.video == video_id, ObjectPoint.frame_idx == frame_idx))
 
     @staticmethod
     def update_object_point(point_id: int, x: int = None, y: int = None) -> bool:

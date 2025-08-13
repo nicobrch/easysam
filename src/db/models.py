@@ -66,3 +66,4 @@ class ObjectPoint(BaseModel):
         PointLabel, backref='object_points', on_delete='CASCADE')
     x = IntegerField()
     y = IntegerField()
+    frame_idx = IntegerField()
