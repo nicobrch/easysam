@@ -37,7 +37,7 @@ class DatabaseAPI:
         """Update a project"""
         with get_db_session():
             try:
-                project = Project.get_by_id(project_id)
+                project: Project = Project.get_by_id(project_id)
                 project.name = name
                 project.save()
                 return True
@@ -233,7 +233,7 @@ class DatabaseAPI:
         """Update an object"""
         with get_db_session():
             try:
-                obj = Object.get_by_id(object_id)
+                obj: Object = Object.get_by_id(object_id)
                 if name is not None:
                     obj.name = name
                 if color is not None:
@@ -332,7 +332,7 @@ class DatabaseAPI:
         """Update an object point coordinates"""
         with get_db_session():
             try:
-                point = ObjectPoint.get_by_id(point_id)
+                point: ObjectPoint = ObjectPoint.get_by_id(point_id)
                 if x is not None:
                     point.x = x
                 if y is not None:
