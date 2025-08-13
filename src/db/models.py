@@ -24,7 +24,7 @@ class Videos(BaseModel):
     project = ForeignKeyField(Project, backref='videos', on_delete='CASCADE')
     name = CharField(max_length=255)
     file_path = CharField(max_length=500)
-    first_frame_path = CharField(max_length=500)
+    frame_directory = CharField(max_length=500)
     width = IntegerField()
     height = IntegerField()
     fps = FloatField()

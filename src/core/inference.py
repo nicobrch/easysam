@@ -2,13 +2,10 @@ import contextlib
 import logging
 import os
 import uuid
-from pathlib import Path
 from threading import Lock
-from typing import Any, Dict, Generator, List
+from typing import Any, Dict
 
-import numpy as np
 import torch
-from .app_conf import APP_ROOT, MODEL_SIZE
 from sam2.build_sam import build_sam2_video_predictor
 
 
@@ -17,24 +14,23 @@ logger = logging.getLogger(__name__)
 
 class InferenceAPI:
 
-    def __init__(self) -> None:
+    def __init__(self, model_size: str) -> None:
         super(InferenceAPI, self).__init__()
 
         self.session_states: Dict[str, Any] = {}
         self.score_thresh = 0
 
-        if MODEL_SIZE == "tiny":
-            checkpoint = Path(APP_ROOT) / "checkpoints/sam2.1_hiera_tiny.pt"
+        if model_size == "tiny":
+            checkpoint = "checkpoints/sam2.1_hiera_tiny.pt"
             model_cfg = "configs/sam2.1/sam2.1_hiera_t.yaml"
-        elif MODEL_SIZE == "small":
-            checkpoint = Path(APP_ROOT) / "checkpoints/sam2.1_hiera_small.pt"
+        elif model_size == "small":
+            checkpoint = "checkpoints/sam2.1_hiera_small.pt"
             model_cfg = "configs/sam2.1/sam2.1_hiera_s.yaml"
-        elif MODEL_SIZE == "large":
-            checkpoint = Path(APP_ROOT) / "checkpoints/sam2.1_hiera_large.pt"
+        elif model_size == "large":
+            checkpoint = "checkpoints/sam2.1_hiera_large.pt"
             model_cfg = "configs/sam2.1/sam2.1_hiera_l.yaml"
         else:  # base_plus (default)
-            checkpoint = Path(APP_ROOT) / \
-                "checkpoints/sam2.1_hiera_base_plus.pt"
+            checkpoint = "checkpoints/sam2.1_hiera_base_plus.pt"
             model_cfg = "configs/sam2.1/sam2.1_hiera_b+.yaml"
 
         # select the device for computation
@@ -74,11 +70,11 @@ class InferenceAPI:
         else:
             return contextlib.nullcontext()
 
-    def start_session(self, video_path: str) -> str:
-        """Start a new inference session for a video file.
+    def start_session(self, frame_directory: str) -> str:
+        """Start a new inference session for a video file using it's frame directory.
 
         Args:
-            video_path: Path to the video file
+            frame_directory: Path to the directory containing video frames
 
         Returns:
             session_id: Unique identifier for the session
@@ -89,7 +85,7 @@ class InferenceAPI:
             # memory fragmentation in MPS (which sometimes crashes the entire process)
             offload_video_to_cpu = self.device.type == "mps"
             inference_state = self.predictor.init_state(
-                video_path,
+                frame_directory,
                 offload_video_to_cpu=offload_video_to_cpu,
             )
             self.session_states[session_id] = {
@@ -97,7 +93,7 @@ class InferenceAPI:
                 "state": inference_state,
             }
             logger.info(
-                f"Started new session {session_id} for video: {video_path}")
+                f"Started new session {session_id} for video frames: {frame_directory}")
             return session_id
 
     def close_session(self, session_id: str) -> bool:
