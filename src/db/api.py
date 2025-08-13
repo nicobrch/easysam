@@ -1,6 +1,6 @@
 from typing import List, Optional, Dict, Any
 from peewee import DoesNotExist, IntegrityError
-from .main import get_db_session
+from .session import get_db_session
 from .models import (
     Project, VideoTypes, Videos, VideoInference,
     Object, PointLabel, ObjectPoint

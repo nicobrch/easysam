@@ -1,5 +1,5 @@
 import os
-from .main import db, get_db_session
+from .session import db
 from .models import (
     Project, VideoTypes, Videos, VideoInference,
     Object, PointLabel, ObjectPoint
