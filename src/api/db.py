@@ -1,7 +1,7 @@
 from typing import List, Optional, Dict, Any
 from peewee import DoesNotExist, IntegrityError
-from .session import get_db_session
-from .models import (
+from ..db.session import get_db_session
+from ..db.models import (
     Project, VideoTypes, Videos, VideoInference,
     Object, PointLabel, ObjectPoint
 )
@@ -364,7 +364,7 @@ class DatabaseAPI:
     @staticmethod
     def initialize_database():
         """Initialize the database by creating all tables"""
-        from .models import Project, VideoTypes, Videos, VideoInference, Object, PointLabel, ObjectPoint
+        from ..db.models import Project, VideoTypes, Videos, VideoInference, Object, PointLabel, ObjectPoint
         with get_db_session() as db:
             db.create_tables([
                 Project, VideoTypes, Videos, VideoInference,
