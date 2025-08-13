@@ -231,3 +231,84 @@ class InferenceAPI:
                 "counts": mask_rle["counts"]
             }
         }
+
+    def clear_points_in_frame(
+        self,
+        session_id: str,
+        frame_index: int,
+        object_id: int
+    ) -> Tuple[int, List[int], List[Dict[str, Any]]]:
+        """Remove all input points in a specific frame.
+
+        Args:
+            session_id: The session identifier
+            frame_index: Frame index to clear points from
+            object_id: Object ID to clear points for
+
+        Returns:
+            Tuple of (frame_index, object_ids, masks_rle)
+        """
+        with self.autocast_context(), self.inference_lock:
+            session = self.__get_session(session_id)
+            inference_state = session["state"]
+
+            frame_idx, obj_ids, video_res_masks = (
+                self.predictor.clear_all_prompts_in_frame(
+                    inference_state, frame_index, object_id
+                )
+            )
+            masks_binary = (video_res_masks > self.score_thresh)[
+                :, 0].cpu().numpy()
+
+            masks_rle = self.__get_rle_mask_list(
+                object_ids=obj_ids, masks=masks_binary
+            )
+
+            return frame_idx, obj_ids, masks_rle
+
+    def clear_points_in_video(self, session_id: str) -> bool:
+        """Remove all input points in all frames throughout the video.
+
+        Args:
+            session_id: The session identifier
+
+        Returns:
+            bool: True if successful
+        """
+        with self.autocast_context(), self.inference_lock:
+            session = self.__get_session(session_id)
+            inference_state = session["state"]
+            self.predictor.reset_state(inference_state)
+            return True
+
+    def remove_object(
+        self,
+        session_id: str,
+        object_id: int
+    ) -> List[Tuple[int, List[int], List[Dict[str, Any]]]]:
+        """Remove an object id from the tracking state.
+
+        Args:
+            session_id: The session identifier
+            object_id: Object ID to remove from tracking
+
+        Returns:
+            List of tuples containing (frame_index, object_ids, masks_rle) for updated frames
+        """
+        with self.autocast_context(), self.inference_lock:
+            session = self.__get_session(session_id)
+            inference_state = session["state"]
+            new_obj_ids, updated_frames = self.predictor.remove_object(
+                inference_state, object_id
+            )
+
+            results = []
+            for frame_index, video_res_masks in updated_frames:
+                masks = (video_res_masks > self.score_thresh)[
+                    :, 0].cpu().numpy()
+                rle_mask_list = self.__get_rle_mask_list(
+                    object_ids=new_obj_ids, masks=masks
+                )
+                results.append((frame_index, new_obj_ids, rle_mask_list))
+
+            return results
