@@ -3,7 +3,7 @@ import logging
 import os
 import uuid
 from threading import Lock
-from typing import Any, Dict, List, Tuple
+from typing import Any, Dict, List, Tuple, Generator, Optional
 
 import numpy as np
 import torch
@@ -312,3 +312,107 @@ class InferenceAPI:
                 results.append((frame_index, new_obj_ids, rle_mask_list))
 
             return results
+
+    def propagate_in_video(
+        self,
+        session_id: str,
+        start_frame_index: int,
+        propagation_direction: str = "both",
+        max_frame_num_to_track: Optional[int] = None
+    ) -> Generator[Tuple[int, List[int], List[Dict[str, Any]]], None, None]:
+        """Propagate existing input points in all frames to track the object across video.
+
+        Args:
+            session_id: The session identifier
+            start_frame_index: Frame index to start propagation from
+            propagation_direction: Direction to propagate ("both", "forward", "backward")
+            max_frame_num_to_track: Maximum number of frames to track
+
+        Yields:
+            Tuple of (frame_index, object_ids, masks_rle) for each frame
+        """
+        with self.autocast_context(), self.inference_lock:
+            logger.info(
+                f"propagate in video in session {session_id}: "
+                f"{propagation_direction=}, {start_frame_index=}, {max_frame_num_to_track=}"
+            )
+
+            try:
+                session = self.__get_session(session_id)
+                session["canceled"] = False
+
+                inference_state = session["state"]
+                if propagation_direction not in ["both", "forward", "backward"]:
+                    raise ValueError(
+                        f"invalid propagation direction: {propagation_direction}"
+                    )
+
+                # First doing the forward propagation
+                if propagation_direction in ["both", "forward"]:
+                    for outputs in self.predictor.propagate_in_video(
+                        inference_state=inference_state,
+                        start_frame_idx=start_frame_index,
+                        max_frame_num_to_track=max_frame_num_to_track,
+                        reverse=False,
+                    ):
+                        if session["canceled"]:
+                            return
+
+                        frame_idx, obj_ids, video_res_masks = outputs
+                        masks_binary = (
+                            (video_res_masks > self.score_thresh)[
+                                :, 0].cpu().numpy()
+                        )
+
+                        rle_mask_list = self.__get_rle_mask_list(
+                            object_ids=obj_ids, masks=masks_binary
+                        )
+
+                        yield (frame_idx, obj_ids, rle_mask_list)
+
+                # Then doing the backward propagation (reverse in time)
+                if propagation_direction in ["both", "backward"]:
+                    for outputs in self.predictor.propagate_in_video(
+                        inference_state=inference_state,
+                        start_frame_idx=start_frame_index,
+                        max_frame_num_to_track=max_frame_num_to_track,
+                        reverse=True,
+                    ):
+                        if session["canceled"]:
+                            return
+
+                        frame_idx, obj_ids, video_res_masks = outputs
+                        masks_binary = (
+                            (video_res_masks > self.score_thresh)[
+                                :, 0].cpu().numpy()
+                        )
+
+                        rle_mask_list = self.__get_rle_mask_list(
+                            object_ids=obj_ids, masks=masks_binary
+                        )
+
+                        yield (frame_idx, obj_ids, rle_mask_list)
+            finally:
+                logger.info(
+                    f"propagation ended in session {session_id}; {self.__get_session_stats()}"
+                )
+
+    def cancel_propagation(self, session_id: str) -> bool:
+        """Cancel ongoing propagation in a session.
+
+        Args:
+            session_id: The session identifier
+
+        Returns:
+            bool: True if cancellation was successful
+        """
+        try:
+            session = self.__get_session(session_id)
+            session["canceled"] = True
+            logger.info(f"Propagation canceled for session {session_id}")
+            return True
+        except RuntimeError:
+            logger.warning(
+                f"Cannot cancel propagation for session {session_id} - session not found"
+            )
+            return False
