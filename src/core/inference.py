@@ -3,10 +3,12 @@ import logging
 import os
 import uuid
 from threading import Lock
-from typing import Any, Dict
+from typing import Any, Dict, List, Tuple
 
+import numpy as np
 import torch
 from sam2.build_sam import build_sam2_video_predictor
+from pycocotools.mask import encode as encode_masks
 
 
 logger = logging.getLogger(__name__)
@@ -22,16 +24,16 @@ class InferenceAPI:
 
         if model_size == "tiny":
             checkpoint = "checkpoints/sam2.1_hiera_tiny.pt"
-            model_cfg = "configs/sam2.1/sam2.1_hiera_t.yaml"
+            model_cfg = "config/sam2.1_hiera_t.yaml"
         elif model_size == "small":
             checkpoint = "checkpoints/sam2.1_hiera_small.pt"
-            model_cfg = "configs/sam2.1/sam2.1_hiera_s.yaml"
+            model_cfg = "config/sam2.1_hiera_s.yaml"
         elif model_size == "large":
             checkpoint = "checkpoints/sam2.1_hiera_large.pt"
-            model_cfg = "configs/sam2.1/sam2.1_hiera_l.yaml"
+            model_cfg = "config/sam2.1_hiera_l.yaml"
         else:  # base_plus (default)
             checkpoint = "checkpoints/sam2.1_hiera_base_plus.pt"
-            model_cfg = "configs/sam2.1/sam2.1_hiera_b+.yaml"
+            model_cfg = "config/sam2.1_hiera_b+.yaml"
 
         # select the device for computation
         force_cpu_device = os.environ.get(
@@ -152,3 +154,80 @@ class InferenceAPI:
             f"live sessions: [{', '.join(live_session_strs)}], {gpu_stats}"
         )
         return session_stats_str
+
+    def add_points(
+        self,
+        session_id: str,
+        frame_index: int,
+        object_id: int,
+        points: List[List[float]],
+        labels: List[int],
+        clear_old_points: bool = True
+    ) -> Tuple[int, List[int], List[Dict[str, Any]]]:
+        """Add new points on a specific video frame.
+
+        Args:
+            session_id: The session identifier
+            frame_index: Frame index to add points to
+            object_id: Object ID to track
+            points: List of [x, y] coordinates
+            labels: List of labels (1 for positive, 0 for negative)
+            clear_old_points: Whether to clear previous points
+
+        Returns:
+            Tuple of (frame_index, object_ids, masks_rle)
+        """
+        with self.autocast_context(), self.inference_lock:
+            session = self.__get_session(session_id)
+            inference_state = session["state"]
+
+            # add new prompts and instantly get the output on the same frame
+            frame_idx, object_ids, masks = self.predictor.add_new_points_or_box(
+                inference_state=inference_state,
+                frame_idx=frame_index,
+                obj_id=object_id,
+                points=points,
+                labels=labels,
+                clear_old_points=clear_old_points,
+                normalize_coords=False,
+            )
+
+            masks_binary = (masks > self.score_thresh)[:, 0].cpu().numpy()
+
+            # Use the existing helper method
+            masks_rle = self.__get_rle_mask_list(
+                object_ids=object_ids, masks=masks_binary
+            )
+
+            return frame_idx, object_ids, masks_rle
+
+    def __get_rle_mask_list(
+        self, object_ids: List[int], masks: np.ndarray
+    ) -> List[Dict[str, Any]]:
+        """Return a list of mask data for objects."""
+        masks_rle = []
+        for obj_id, mask in zip(object_ids, masks):
+            mask_rle = encode_masks(np.array(mask, dtype=np.uint8, order="F"))
+            mask_rle["counts"] = mask_rle["counts"].decode()
+            masks_rle.append({
+                "object_id": obj_id,
+                "mask": {
+                    "size": mask_rle["size"],
+                    "counts": mask_rle["counts"]
+                }
+            })
+        return masks_rle
+
+    def __get_mask_for_object(
+        self, object_id: int, mask: np.ndarray
+    ) -> Dict[str, Any]:
+        """Create mask data for an object."""
+        mask_rle = encode_masks(np.array(mask, dtype=np.uint8, order="F"))
+        mask_rle["counts"] = mask_rle["counts"].decode()
+        return {
+            "object_id": object_id,
+            "mask": {
+                "size": mask_rle["size"],
+                "counts": mask_rle["counts"]
+            }
+        }

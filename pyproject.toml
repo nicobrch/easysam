@@ -9,6 +9,7 @@ dependencies = [
     "opencv-python>=4.12.0.88",
     "pandas>=2.3.1",
     "peewee>=3.18.2",
+    "pycocotools>=2.0.10",
     "sam-2",
     "supervision>=0.26.1",
 ]
