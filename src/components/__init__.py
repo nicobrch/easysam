@@ -47,6 +47,13 @@ from .dropdown import (
     create_options
 )
 
+# Dropzone components
+from .dropzone import (
+    dropzone,
+    video_dropzone,
+    image_dropzone
+)
+
 # Navigation components
 from .navbar import (
     navbar,
@@ -69,6 +76,9 @@ __all__ = [
 
     # Dropdown
     'dropdown', 'select', 'multi_select', 'searchable_dropdown', 'create_options',
+
+    # Dropzone
+    'dropzone', 'video_dropzone', 'image_dropzone',
 
     # Navigation
     'navbar', 'create_navbar',
