@@ -7,7 +7,9 @@ app = Dash(__name__,
            title="EasySam",
            external_scripts=["https://unpkg.com/@tailwindcss/browser@4"],
            external_stylesheets=[
-               "https://fonts.googleapis.com/css2?family=Inter&display=swap"])
+               "https://fonts.googleapis.com/css2?family=Inter&display=swap",
+               "https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
+           ])
 
 app.layout = html.Div([
     create_navbar(),
