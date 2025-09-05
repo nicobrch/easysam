@@ -1,8 +1,12 @@
 import dash
 from dash import html, dcc, callback, Input, Output, State
 from typing import NamedTuple, Optional
+from pathlib import Path
+import base64
+from utils.frames import extract_frames
+from utils.paths import get_original_frames_path, UPLOADS_DIR
 from components import (
-    text_card, action_card,
+    text_card,
     primary_button, secondary_button,
     text_input, number_input,
     select, create_options,
@@ -58,6 +62,8 @@ resolution_options = create_options({
 })
 
 layout = page_layout([
+    # Hidden location component for redirects
+    dcc.Location(id="page-redirect", refresh=True),
     section([
         html.Div([
             # Upload Zone
@@ -66,7 +72,11 @@ layout = page_layout([
             ], id="upload-zone", className="mb-6"),
 
             # Upload Status
-            html.Div(id="upload-status", className="mb-6"),
+            dcc.Loading(
+                id="processing-loading",
+                type="default",
+                children=html.Div(id="upload-status", className="mb-6"),
+            ),
 
             # Form Section (initially hidden)
             html.Div([
@@ -229,16 +239,21 @@ def handle_cancel(n_clicks):
 
 
 @callback(
-    Output('upload-status', 'children', allow_duplicate=True),
+    [
+        Output('upload-status', 'children', allow_duplicate=True),
+        Output('page-redirect', 'href')
+    ],
     [Input('process-btn', 'n_clicks')],
     [State('video-name-input', 'value'),
      State('resolution-select', 'value'),
-     State('frame-step-input', 'value')],
+     State('frame-step-input', 'value'),
+     State('video-upload', 'contents'),
+     State('video-upload', 'filename')],
     prevent_initial_call=True
 )
-def handle_process_video(n_clicks, video_name, resolution, frame_step):
+def handle_process_video(n_clicks, video_name, resolution, frame_step, upload_contents, upload_filename):
     if not n_clicks:
-        return dash.no_update
+        return dash.no_update, dash.no_update
 
     # Create and validate form data
     form_data = VideoFormData(
@@ -263,19 +278,79 @@ def handle_process_video(n_clicks, video_name, resolution, frame_step):
                 ])
             ], className="flex items-center")
         ], className="bg-red-50 border border-red-200 rounded-lg p-4")
-        return error_message
+        return error_message, dash.no_update
 
-    # Show processing message
-    processing_message = html.Div([
-        html.Div([
-            html.I(className="fas fa-spinner fa-spin text-blue-500 text-xl mr-3"),
+    # Ensure a video is uploaded
+    if not upload_contents or not upload_filename:
+        error_message = html.Div([
             html.Div([
-                html.H4("Processing video...",
+                html.I(
+                    className="fas fa-exclamation-triangle text-red-500 text-xl mr-3"),
+                html.Div([
+                    html.H4("No video to process",
+                            className="text-sm font-medium text-gray-900"),
+                    html.P("Please upload a video before processing.",
+                           className="text-xs text-gray-600")
+                ])
+            ], className="flex items-center")
+        ], className="bg-red-50 border border-red-200 rounded-lg p-4")
+        return error_message, dash.no_update
+
+    # Decode and persist the uploaded video to disk
+    try:
+        header, b64data = upload_contents.split(',', 1)
+        video_bytes = base64.b64decode(b64data)
+        ext = Path(upload_filename).suffix or ".mp4"
+        video_dir = Path(UPLOADS_DIR) / video_name
+        video_dir.mkdir(parents=True, exist_ok=True)
+        video_path = video_dir / f"{video_name}{ext}"
+        with open(video_path, 'wb') as f:
+            f.write(video_bytes)
+    except Exception as e:
+        error_message = html.Div([
+            html.Div([
+                html.I(
+                    className="fas fa-exclamation-triangle text-red-500 text-xl mr-3"),
+                html.Div([
+                    html.H4("Failed to save upload",
+                            className="text-sm font-medium text-gray-900"),
+                    html.P(str(e), className="text-xs text-gray-600")
+                ])
+            ], className="flex items-center")
+        ], className="bg-red-50 border border-red-200 rounded-lg p-4")
+        return error_message, dash.no_update
+
+    # Run frame extraction to the original frames path
+    try:
+        output_dir = get_original_frames_path(video_name)
+        extract_frames(video_path=video_path,
+                       output_dir=output_dir, frame_step=frame_step)
+    except Exception as e:
+        error_message = html.Div([
+            html.Div([
+                html.I(
+                    className="fas fa-exclamation-triangle text-red-500 text-xl mr-3"),
+                html.Div([
+                    html.H4("Frame extraction failed",
+                            className="text-sm font-medium text-gray-900"),
+                    html.P(str(e), className="text-xs text-gray-600")
+                ])
+            ], className="flex items-center")
+        ], className="bg-red-50 border border-red-200 rounded-lg p-4")
+        return error_message, dash.no_update
+
+    # Success: optional message and redirect
+    success_message = html.Div([
+        html.Div([
+            html.I(className="fas fa-check-circle text-green-500 text-xl mr-3"),
+            html.Div([
+                html.H4("Video processed",
                         className="text-sm font-medium text-gray-900"),
-                html.P(f"Name: {video_name} | Resolution: {resolution} | Frame Step: {frame_step}",
+                html.P("Redirecting to home...",
                        className="text-xs text-gray-600")
             ])
         ], className="flex items-center")
-    ], className="bg-blue-50 border border-blue-200 rounded-lg p-4")
+    ], className="bg-green-50 border border-green-200 rounded-lg p-4")
 
-    return processing_message
+    # Redirect to index page
+    return success_message, "/"

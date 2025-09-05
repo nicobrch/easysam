@@ -14,3 +14,6 @@ wheels/
 
 # Model size checkpoints
 *.pt
+
+# Data files
+src/assets/uploads/
