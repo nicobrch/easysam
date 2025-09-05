@@ -191,24 +191,41 @@ def validate_form_inputs(video_name, resolution, frame_step):
 
 
 @callback(
-    [Output('video-upload', 'style'),
+    [Output('upload-zone', 'children'),
      Output('upload-status', 'children', allow_duplicate=True),
      Output('video-form', 'style', allow_duplicate=True),
      Output('process-btn', 'disabled', allow_duplicate=True),
      Output('validation-errors', 'children', allow_duplicate=True),
      Output('video-name-input', 'value', allow_duplicate=True),
-     Output('frame-step-input', 'value', allow_duplicate=True)],
+     Output('frame-step-input', 'value', allow_duplicate=True),
+     Output('resolution-select', 'value', allow_duplicate=True)],
     [Input('cancel-btn', 'n_clicks')],
     prevent_initial_call=True
 )
 def handle_cancel(n_clicks):
     if n_clicks:
-        # Reset dropzone style (this will be handled by the dropzone component)
-        upload_style = {}
+        # Re-mount the dropzone and reset all UI to initial state without touching styles
+        return (
+            [video_dropzone(id='video-upload')],  # reset upload zone
+            "",                                 # clear upload status
+            {"display": "none"},               # hide form
+            True,                                 # disable process button
+            "",                                 # clear validation errors
+            "",                                 # clear video name
+            4,                                    # reset frame step
+            "1920x1080",                        # reset resolution
+        )
 
-        return upload_style, "", {"display": "none"}, True, "", "", 4
-
-    return dash.no_update, dash.no_update, dash.no_update, dash.no_update, dash.no_update, dash.no_update, dash.no_update
+    return (
+        dash.no_update,
+        dash.no_update,
+        dash.no_update,
+        dash.no_update,
+        dash.no_update,
+        dash.no_update,
+        dash.no_update,
+        dash.no_update,
+    )
 
 
 @callback(
