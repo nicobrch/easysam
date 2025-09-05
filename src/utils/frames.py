@@ -1,44 +1,70 @@
-import os
-import cv2
-import supervision as sv
-from typing import Optional
+import subprocess
+from pathlib import Path
+from typing import List, Union
 
 
-def extract_frames(
-    video_path: str,
-    output_dir: str,
-    frame_step: int = 1,
-    start_frame: int = 0,
-    end_frame: Optional[int] = None
-) -> None:
+def extract_frames(video_path: Union[str, Path], output_dir: Union[str, Path], frame_step: int) -> List[Path]:
     """
-    Extract frames from a video at specified intervals using supervision.
+    Extract PNG frames from a video using ffmpeg with CUDA hardware acceleration.
+
+    - Frames are saved with 6-digit padding using the original video file name:
+      e.g., "<video-stem>_000001.png"
+    - frame_step keeps 1 frame every N frames (1=every frame, 2=every other frame, etc.).
 
     Args:
-        video_path: Path to the input video file
-        output_dir: Directory where extracted frames will be saved
-        frame_step: Interval between extracted frames (stride)
-        start_frame: Starting frame position
-        end_frame: Ending frame position (None for entire video)
+        video_path: Path to the input video file.
+        output_dir: Directory where extracted frames will be saved (created if missing).
+        frame_step: Keep one frame every `frame_step` frames. Must be >= 1.
+
+    Returns:
+        A sorted list of Paths to the extracted frames.
+
+    Raises:
+        ValueError: If frame_step < 1.
+        RuntimeError: If ffmpeg is not found or the command fails.
     """
-    # Create output directory if it doesn't exist
-    os.makedirs(output_dir, exist_ok=True)
+    if frame_step < 1:
+        raise ValueError("frame_step must be >= 1")
 
-    # Get video frames generator with specified stride
-    frames_generator = sv.get_video_frames_generator(
-        source_path=video_path,
-        stride=frame_step,
-        start=start_frame,
-        end=end_frame
-    )
+    video_path = Path(video_path)
+    output_dir = Path(output_dir)
+    output_dir.mkdir(parents=True, exist_ok=True)
 
-    # Extract and save frames
-    for frame_idx, frame in enumerate(frames_generator):
-        # Create filename with zero-padded frame number
-        frame_filename = f"frame_{frame_idx:06d}.jpg"
-        frame_path = os.path.join(output_dir, frame_filename)
+    base_name = video_path.stem
+    output_pattern = output_dir / f"{base_name}_%06d.png"
 
-        # Save frame as image
-        cv2.imwrite(frame_path, frame)
+    # Use select filter to keep one frame every `frame_step` frames.
+    # Escape comma in the expression for ffmpeg filter syntax.
+    filter_expr = f"select=not(mod(n\\,{frame_step}))"
 
-    print(f"Extracted frames saved to: {output_dir}")
+    cmd = [
+        "ffmpeg",
+        "-hide_banner",
+        "-loglevel",
+        "error",
+        "-nostdin",
+        "-y",
+        "-hwaccel",
+        "cuda",
+        "-i",
+        str(video_path),
+        "-vf",
+        filter_expr,
+        "-vsync",
+        "vfr",
+        "-start_number",
+        "1",
+        str(output_pattern),
+    ]
+
+    try:
+        subprocess.run(cmd, check=True)
+    except FileNotFoundError as e:
+        raise RuntimeError(
+            "ffmpeg not found. Ensure ffmpeg is installed and in PATH.") from e
+    except subprocess.CalledProcessError as e:
+        raise RuntimeError(
+            f"ffmpeg failed with exit code {e.returncode}") from e
+
+    # Collect and return extracted frame paths
+    return sorted(output_dir.glob(f"{base_name}_*.png"))
